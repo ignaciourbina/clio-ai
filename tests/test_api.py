@@ -86,3 +86,34 @@ def test_dataset_raw_and_purge(client: TestClient):
     assert resp.status_code == 200
     assert resp.json() == []
 
+
+def test_project_notes(client: TestClient):
+    payload = {"project_id": "P-002", "name": "Noted Project"}
+    resp = client.post("/projects/", json=payload)
+    project = resp.json()
+    pid = project["id"]
+
+    # create note
+    resp = client.post(f"/projects/{pid}/notes/", json={"content": "first note"})
+    assert resp.status_code == 201
+    note = resp.json()
+    nid = note["id"]
+
+    # list notes
+    resp = client.get(f"/projects/{pid}/notes/")
+    assert resp.status_code == 200
+    assert len(resp.json()) == 1
+
+    # update note
+    resp = client.put(f"/notes/{nid}", json={"content": "updated"})
+    assert resp.status_code == 200
+    assert resp.json()["content"] == "updated"
+
+    # delete note
+    resp = client.delete(f"/notes/{nid}")
+    assert resp.status_code == 204
+
+    # confirm gone
+    resp = client.get(f"/notes/{nid}")
+    assert resp.status_code == 404
+

@@ -14,6 +14,7 @@ Key responsibilities
 
 Developer log
 -------------
+* **v1.3.0 (2025-07-17)** – Added ``ProjectNote`` table for per-project notebook entries.
 * **v1.2.1 (2025‑07‑17)** – Switched default DB directory to */tmp/agile_data*
   to avoid container write‑permission issues.
 * **v1.2.0 (2025‑07‑17)** – Removed ``Ticket`` table; added richer Project fields.
@@ -100,6 +101,14 @@ class Project(_UTCDateTime, table=True):
     deadline: Optional[_dt.date] = Field(default=None, description="Target completion date (UTC)")
     project_type: Optional[str] = Field(default=None, description="Epic / Feature / Maintenance / ...")
     tooling: Optional[str] = Field(default=None, description="Stack or primary tools in use")
+
+
+class ProjectNote(_UTCDateTime, table=True):
+    """Notebooks or logs attached to a parent project."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    project_id: int = Field(foreign_key="project.id", nullable=False)
+    content: str = Field(nullable=False, description="Free-form note content")
 
 # --------------------------------------------------------------------------- #
 # 3. Schema initialisation helper
