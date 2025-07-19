@@ -4,6 +4,7 @@ app.py – FastAPI layer for the **Agile Project Management API**
 
 Developer log
 -------------
+* **v2.1.0 (2025–07–17)** – Added ``last_reviewed_at`` tracking on updates.
 * **v2.0.0 (2025–07–17)** – **Pruned Ticket subsystem**; file now focuses on
   Project CRUD only and adopts richer project fields.
 * **v1.0.1 (2025–07–17)** – Added rich top‑level docstring, expanded inline
@@ -83,7 +84,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="Agile Project Management API",
     description="Manage projects via REST",
-    version="2.0.0",
+    version="2.1.0",
     lifespan=lifespan,
     dependencies=[Depends(get_api_key)],  # global – applies to all routes
 )
@@ -136,6 +137,7 @@ def get_session() -> Iterator[Session]:
 def create_project(payload: ProjectIn, session: Session = Depends(get_session)):
     """Insert a new *Project* row and return the persisted object."""
     project = db.Project(**payload.dict())
+    project.last_reviewed_at = datetime.datetime.utcnow()
     session.add(project)
     session.commit()
     session.refresh(project)
@@ -161,7 +163,9 @@ def update_project(project_id: int, upd: ProjectUpdate, session: Session = Depen
 
     for field, value in upd.dict(exclude_unset=True).items():
         setattr(project, field, value)
-    project.updated_at = datetime.datetime.utcnow()
+    now = datetime.datetime.utcnow()
+    project.updated_at = now
+    project.last_reviewed_at = now
 
     session.add(project)
     session.commit()

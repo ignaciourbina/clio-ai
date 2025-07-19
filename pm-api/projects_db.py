@@ -14,6 +14,7 @@ Key responsibilities
 
 Developer log
 -------------
+* **v1.2.2 (2025‑07‑17)** – Added optional ``last_reviewed_at`` column.
 * **v1.2.1 (2025‑07‑17)** – Switched default DB directory to */tmp/agile_data*
   to avoid container write‑permission issues.
 * **v1.2.0 (2025‑07‑17)** – Removed ``Ticket`` table; added richer Project fields.
@@ -100,6 +101,10 @@ class Project(_UTCDateTime, table=True):
     deadline: Optional[_dt.date] = Field(default=None, description="Target completion date (UTC)")
     project_type: Optional[str] = Field(default=None, description="Epic / Feature / Maintenance / ...")
     tooling: Optional[str] = Field(default=None, description="Stack or primary tools in use")
+    last_reviewed_at: Optional[_dt.datetime] = Field(
+        default=None,
+        description="Most recent status check (UTC)",
+    )
 
 # --------------------------------------------------------------------------- #
 # 3. Schema initialisation helper
