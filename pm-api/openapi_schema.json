@@ -2,32 +2,54 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Agile Project Management API",
-    "description": "Project-only CRUD service (all endpoints require the X-API-Key header).",
-    "version": "v2.0.0"
+    "description": "Manage projects via REST",
+    "version": "2.0.0"
   },
-  "servers": [
-    {
-      "url": "https://iurbinah-pm-api.hf.space"
-    }
-  ],
   "paths": {
     "/projects/": {
-      "post": {
-        "summary": "Create a project",
-        "operationId": "createProject",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/ProjectCreate"
+      "get": {
+        "summary": "List Projects",
+        "description": "Return **all** projects \u2013 future work: add query params for filtering.",
+        "operationId": "list_projects_projects__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Project"
+                  },
+                  "type": "array",
+                  "title": "Response List Projects Projects  Get"
+                }
               }
             }
           }
         },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Project",
+        "description": "Insert a new *Project* row and return the persisted object.",
+        "operationId": "create_project_projects__post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProjectIn"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "201": {
-            "description": "Project created",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -35,27 +57,13 @@
                 }
               }
             }
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
-      },
-      "get": {
-        "summary": "List all projects",
-        "operationId": "listProjects",
-        "responses": {
-          "200": {
-            "description": "Array of projects",
+          },
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Project"
-                  }
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -63,29 +71,29 @@
         },
         "security": [
           {
-            "apiKeyAuth": []
+            "APIKeyHeader": []
           }
         ]
       }
     },
     "/projects/{project_id}": {
       "get": {
-        "summary": "Retrieve a single project",
-        "operationId": "getProject",
+        "summary": "Get Project",
+        "operationId": "get_project_projects__project_id__get",
         "parameters": [
           {
-            "name": "project_id",
-            "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "title": "Project Id"
             },
-            "description": "Internal numeric primary-key ID"
+            "name": "project_id",
+            "in": "path"
           }
         ],
         "responses": {
           "200": {
-            "description": "Project found",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -94,43 +102,50 @@
               }
             }
           },
-          "404": {
-            "description": "Project not found"
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
           }
         },
         "security": [
           {
-            "apiKeyAuth": []
+            "APIKeyHeader": []
           }
         ]
       },
       "put": {
-        "summary": "Update (partial) a project",
-        "operationId": "updateProject",
+        "summary": "Update Project",
+        "operationId": "update_project_projects__project_id__put",
         "parameters": [
           {
-            "name": "project_id",
-            "in": "path",
             "required": true,
             "schema": {
-              "type": "integer"
+              "type": "integer",
+              "title": "Project Id"
             },
-            "description": "Internal numeric primary-key ID"
+            "name": "project_id",
+            "in": "path"
           }
         ],
         "requestBody": {
-          "required": true,
           "content": {
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/ProjectUpdate"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
-            "description": "Updated project",
+            "description": "Successful Response",
             "content": {
               "application/json": {
                 "schema": {
@@ -139,56 +154,12 @@
               }
             }
           },
-          "404": {
-            "description": "Project not found"
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
-      },
-      "delete": {
-        "summary": "Delete a project",
-        "operationId": "deleteProject",
-        "parameters": [
-          {
-            "name": "project_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            },
-            "description": "Internal numeric primary-key ID"
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Deleted successfully"
-          },
-          "404": {
-            "description": "Project not found"
-          }
-        },
-        "security": [
-          {
-            "apiKeyAuth": []
-          }
-        ]
-      }
-    },
-    "/api/dataset/raw": {
-      "get": {
-        "summary": "Download the raw SQLite database (base64‑encoded)",
-        "operationId": "downloadDatasetRaw",
-        "responses": {
-          "200": {
-            "description": "Returns the SQLite file embedded in JSON",
+          "422": {
+            "description": "Validation Error",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/DatasetRaw"
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -196,241 +167,651 @@
         },
         "security": [
           {
-            "apiKeyAuth": []
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Project",
+        "operationId": "delete_project_projects__project_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Project Id"
+            },
+            "name": "project_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/projects/{project_id}/notes/": {
+      "get": {
+        "summary": "List Notes",
+        "operationId": "list_notes_projects__project_id__notes__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Project Id"
+            },
+            "name": "project_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectNote"
+                  },
+                  "type": "array",
+                  "title": "Response List Notes Projects  Project Id  Notes  Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create Note",
+        "operationId": "create_note_projects__project_id__notes__post",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Project Id"
+            },
+            "name": "project_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectNote"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/notes/{note_id}": {
+      "get": {
+        "summary": "Get Note",
+        "operationId": "get_note_notes__note_id__get",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            },
+            "name": "note_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectNote"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "put": {
+        "summary": "Update Note",
+        "operationId": "update_note_notes__note_id__put",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            },
+            "name": "note_id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProjectNote"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Delete Note",
+        "operationId": "delete_note_notes__note_id__delete",
+        "parameters": [
+          {
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "title": "Note Id"
+            },
+            "name": "note_id",
+            "in": "path"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/api/dataset": {
+      "get": {
+        "summary": "Download Db",
+        "description": "Download the *raw* SQLite file for offline analysis/back\u2011ups.",
+        "operationId": "download_db_api_dataset_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response"
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      },
+      "delete": {
+        "summary": "Purge Db",
+        "description": "Delete DB file **irrevocably** and recreate an empty schema.",
+        "operationId": "purge_db_api_dataset_delete",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/api/dataset/raw": {
+      "get": {
+        "summary": "Download Db Raw",
+        "description": "Download the *raw* SQLite file embedded in JSON (base64\u2011encoded).\nClients receive {\"filename\": \"...\", \"data\": \"<base64>\"}.",
+        "operationId": "download_db_raw_api_dataset_raw_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
+          }
+        ]
+      }
+    },
+    "/": {
+      "get": {
+        "summary": "Root",
+        "description": "Basic connectivity check \u2013 returns fixed JSON.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "APIKeyHeader": []
           }
         ]
       }
     }
   },
   "components": {
-    "securitySchemes": {
-      "apiKeyAuth": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-API-Key"
-      }
-    },
     "schemas": {
-      "Project": {
-        "type": "object",
+      "HTTPValidationError": {
         "properties": {
-          "id": {
-            "type": "integer",
-            "readOnly": true
-          },
-          "project_id": {
-            "type": "string"
-          },
-          "name": {
-            "type": "string"
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": "string"
-          },
-          "priority": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "domain": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "next_steps": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "deadline": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date"
-          },
-          "project_type": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "tooling": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "NoteIn": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "content"
+        ],
+        "title": "NoteIn",
+        "description": "Input schema for creating a project note."
+      },
+      "NoteUpdate": {
+        "properties": {
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "title": "NoteUpdate",
+        "description": "Payload for updating a project note."
+      },
+      "Project": {
+        "properties": {
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "readOnly": true
+            "title": "Created At",
+            "description": "UTC when row was created"
           },
           "updated_at": {
             "type": "string",
             "format": "date-time",
-            "readOnly": true
+            "title": "Updated At",
+            "description": "UTC when row was last modified"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "project_id": {
+            "type": "string",
+            "title": "Project Id",
+            "description": "Human\u2011friendly code, e.g. P\u2011101"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name",
+            "description": "Project title"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description",
+            "description": "Free\u2011form details / scope notes"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status",
+            "description": "Status label (Planned / Active / Done / On\u2011Hold)",
+            "default": "Planned"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority",
+            "description": "High / Medium / Low",
+            "default": "Medium"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain",
+            "description": "Business domain / area owner"
+          },
+          "next_steps": {
+            "type": "string",
+            "title": "Next Steps",
+            "description": "Immediate next actions / blockers"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date",
+            "title": "Deadline",
+            "description": "Target completion date (UTC)"
+          },
+          "project_type": {
+            "type": "string",
+            "title": "Project Type",
+            "description": "Epic / Feature / Maintenance / ..."
+          },
+          "tooling": {
+            "type": "string",
+            "title": "Tooling",
+            "description": "Stack or primary tools in use"
           }
         },
-        "required": [
-          "project_id",
-          "name",
-          "status"
-        ]
-      },
-      "ProjectCreate": {
         "type": "object",
         "required": [
           "project_id",
           "name"
         ],
+        "title": "Project",
+        "description": "Represents a high\u2011level project in an agile board."
+      },
+      "ProjectIn": {
         "properties": {
           "project_id": {
-            "type": "string"
+            "type": "string",
+            "title": "Project Id"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "title": "Name"
           },
           "status": {
             "type": "string",
+            "title": "Status",
             "default": "Planned"
           },
           "next_steps": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "title": "Next Steps"
           },
           "deadline": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date"
+            "type": "string",
+            "format": "date",
+            "title": "Deadline"
           },
           "project_type": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "title": "Project Type"
           },
           "domain": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "title": "Domain"
           },
           "tooling": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "title": "Tooling"
           },
           "priority": {
-            "type": [
-              "string",
-              "null"
-            ]
+            "type": "string",
+            "title": "Priority"
           },
           "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        }
-      },
-      "ProjectUpdate": {
-        "type": "object",
-        "description": "All fields optional for partial updates",
-        "properties": {
-          "name": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "status": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "next_steps": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "deadline": {
-            "type": [
-              "string",
-              "null"
-            ],
-            "format": "date"
-          },
-          "project_type": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "domain": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "tooling": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "priority": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "description": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        }
-      },
-      "DatasetRaw": {
-        "type": "object",
-        "description": "Base64‑encoded SQLite file bundled in JSON.",
-        "properties": {
-          "filename": {
             "type": "string",
-            "description": "The original DB file name (e.g. database.db)"
-          },
-          "data": {
-            "type": "string",
-            "description": "The SQLite file encoded with Base64 (UTF‑8 string)"
+            "title": "Description"
           }
         },
+        "type": "object",
         "required": [
-          "filename",
-          "data"
+          "project_id",
+          "name"
         ],
-        "example": {
-          "filename": "database.db",
-          "data": "UEsDBBQAAAAI..."
-        }
+        "title": "ProjectIn",
+        "description": "*Input* schema for **create** project."
+      },
+      "ProjectNote": {
+        "properties": {
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At",
+            "description": "UTC when row was created"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At",
+            "description": "UTC when row was last modified"
+          },
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "project_id": {
+            "type": "integer",
+            "title": "Project Id"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content",
+            "description": "Free-form note content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "project_id",
+          "content"
+        ],
+        "title": "ProjectNote",
+        "description": "Notebooks or logs attached to a parent project."
+      },
+      "ProjectUpdate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "next_steps": {
+            "type": "string",
+            "title": "Next Steps"
+          },
+          "deadline": {
+            "type": "string",
+            "format": "date",
+            "title": "Deadline"
+          },
+          "project_type": {
+            "type": "string",
+            "title": "Project Type"
+          },
+          "domain": {
+            "type": "string",
+            "title": "Domain"
+          },
+          "tooling": {
+            "type": "string",
+            "title": "Tooling"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "title": "ProjectUpdate",
+        "description": "Payload for **partial update** (PUT) \u2013 all fields optional."
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    },
+    "securitySchemes": {
+      "APIKeyHeader": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
       }
     }
   }
