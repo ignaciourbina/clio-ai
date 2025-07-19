@@ -119,6 +119,18 @@ class ProjectUpdate(BaseModel):
     priority: Optional[str] = None
     description: Optional[str] = None
 
+
+class NoteIn(BaseModel):
+    """Input schema for creating a project note."""
+
+    content: str
+
+
+class NoteUpdate(BaseModel):
+    """Payload for updating a project note."""
+
+    content: Optional[str] = None
+
 # --------------------------------------------------------------------------- #
 # Dependency – generator yields a *scoped* SQLModel session per request
 # --------------------------------------------------------------------------- #
@@ -174,6 +186,55 @@ def delete_project(project_id: int, session: Session = Depends(get_session)):
     if not project:
         raise HTTPException(404, f"Project {project_id} not found")
     session.delete(project)
+    session.commit()
+
+# --------------------------------------------------------------------------- #
+# Project notes – simple notebook entries per project
+# --------------------------------------------------------------------------- #
+
+@app.post("/projects/{project_id}/notes/", response_model=db.ProjectNote, status_code=201)
+def create_note(project_id: int, payload: NoteIn, session: Session = Depends(get_session)):
+    if not session.get(db.Project, project_id):
+        raise HTTPException(404, f"Project {project_id} not found")
+    note = db.ProjectNote(project_id=project_id, content=payload.content)
+    session.add(note)
+    session.commit()
+    session.refresh(note)
+    return note
+
+@app.get("/projects/{project_id}/notes/", response_model=List[db.ProjectNote])
+def list_notes(project_id: int, session: Session = Depends(get_session)):
+    if not session.get(db.Project, project_id):
+        raise HTTPException(404, f"Project {project_id} not found")
+    stmt = select(db.ProjectNote).where(db.ProjectNote.project_id == project_id)
+    return session.exec(stmt).all()
+
+@app.get("/notes/{note_id}", response_model=db.ProjectNote)
+def get_note(note_id: int, session: Session = Depends(get_session)):
+    note = session.get(db.ProjectNote, note_id)
+    if not note:
+        raise HTTPException(404, f"Note {note_id} not found")
+    return note
+
+@app.put("/notes/{note_id}", response_model=db.ProjectNote)
+def update_note(note_id: int, upd: NoteUpdate, session: Session = Depends(get_session)):
+    note = session.get(db.ProjectNote, note_id)
+    if not note:
+        raise HTTPException(404, f"Note {note_id} not found")
+    for field, value in upd.dict(exclude_unset=True).items():
+        setattr(note, field, value)
+    note.updated_at = datetime.datetime.utcnow()
+    session.add(note)
+    session.commit()
+    session.refresh(note)
+    return note
+
+@app.delete("/notes/{note_id}", status_code=204)
+def delete_note(note_id: int, session: Session = Depends(get_session)):
+    note = session.get(db.ProjectNote, note_id)
+    if not note:
+        raise HTTPException(404, f"Note {note_id} not found")
+    session.delete(note)
     session.commit()
 
 # --------------------------------------------------------------------------- #
